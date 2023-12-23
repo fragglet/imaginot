@@ -1,0 +1,77 @@
+
+Two files:
+	For these, the c: gets replaced according to -d parameter.
+
+	COMM_FILE  "c:sopwith?.dta" /*  Multi user communications file  */
+		- ? gets replaced with 0-9 based on game number chosen
+	COMM_CMD   "c:semaphor\0   "/*  Multi-user semaphor file        */
+
+Startup procedure:
+	multopen:
+		bopen("c:")
+		name_to_sec:
+			make_bpb:
+				bseek to 0
+				bread 512 bytes (1 block)
+				fill bpb struct from block
+			get_ent:
+				lookup:
+					reads a series of blocks, starting from
+					location defined by bpb. each is
+					interpreted as a dirent. we look for a
+					file with name matching target.
+					populates a dirent when found
+			clu_to_sec:
+				dirent.dc contained cluster; we map this to
+				a sector, taking bpb fields into account
+			sectparm:
+				call int 21h fn 44h subfn 04h (read)
+				check for signature 0x4003
+				calculate multaddr, multdriv, multhead
+
+		comm{driv,head,trk,sect,asect} get calculated for command
+		(semaphore) file while mult* versions for communication file
+
+		- repeat of multopen bopen() for COMM_FILE drive
+			calculate multaddr, multdriv, multhead, multdriv
+
+		_dkioset
+			setting up interrupts
+		try 25 times to multread:
+			bseek to semaphore sector, bread
+			check first byte == 0xfe
+			bseek to semaphore sector, bwrite
+			set first byte to 0xff
+			bseek to semaphore sector, bread
+			check first byte == 0xff now
+			bseek to comms sector, bread into multbuff
+			
+
+			
+
+
+During gameplay:
+
+	swmove() calls multput()
+	 - does both read and write, stop and go synchronized between players
+	
+	multput -> _multput:
+		updated(0, player):
+			Blocks until players 0...player-1 ready
+			"ready" means in FINISHED state
+			we repeatedly call _dkio() to read from disk
+				calls int 13h function 2
+
+		now we're ready to write our ticcmd
+		swgetc() to read ticcmd
+		written to mu->mu_key[player]
+		mu->mu_lstplyr is set to player
+
+		_dkio() writes buffer containing ticcmd
+			calls int 13h function 3
+
+		updated(player + 1, mu->mu_maxplyr)
+			- blocks until all other players have also written
+
+
+      
