@@ -115,7 +115,8 @@ static void interrupt far Int13(union INTPACK ip)
 	// ah=2 -> DISK - READ SECTOR(S) INTO MEMORY
 	// al=1 -> Drive B:
 	if (ip.h.ah == 2 && ip.h.dl == 1) {
-		uint32_t sector = ((uint32_t) ip.x.cx)
+		// BIOS sector numbers are indexed from 1.
+		uint32_t sector = ((uint32_t) ip.x.cx - 1UL)
 			| (((uint32_t) ip.h.dh) << 16);
 		uint8_t result = ReadSector(
 			MK_FP(ip.x.es, ip.x.bx), sector, ip.h.al);
