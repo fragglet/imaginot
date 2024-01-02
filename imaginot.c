@@ -141,6 +141,26 @@ static void interrupt far Int21(union INTPACK ip)
 	_chain_intr(old_int21);
 }
 
+// DOS interrupts 25h and 26h leave the FLAGS register on the stack and
+// it is the job of the caller to clean it up. So here we have a special
+// modified version of the Watcom interrupt return sequence that does a
+// retf instead of iret.
+extern void PopAndReturn();
+#pragma aux PopAndReturn = \
+    "pop ax" \
+    "pop ax" \
+    "pop es" \
+    "pop ds" \
+    "pop di" \
+    "pop si" \
+    "pop bp" \
+    "pop bx" \
+    "pop bx" \
+    "pop dx" \
+    "pop cx" \
+    "pop ax" \
+    "retf"
+
 // Int 25h: DOS 1+ - ABSOLUTE DISK READ
 static void interrupt far Int25(union INTPACK ip)
 {
@@ -159,10 +179,13 @@ static void interrupt far Int25(union INTPACK ip)
 			ip.h.ah = 0x20;
 			ip.h.al = 0x0c;  // general failure
 		}
-		return;
+		goto pop_and_return;
 	}
 
 	_chain_intr(old_int25);
+
+pop_and_return:
+	PopAndReturn();
 }
 
 // Int 26h: DOS 1+ - ABSOLUTE DISK WRITE
