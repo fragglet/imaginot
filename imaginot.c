@@ -20,6 +20,16 @@ struct bpb {
 	uint16_t sectors_per_fat;
 };
 
+struct fat_dirent {
+	char name[11];
+	uint8_t attr;
+	uint8_t res[10];
+	uint16_t time;
+	uint16_t date;
+	uint16_t cluster;
+	uint32_t size;
+};
+
 static void (interrupt far *old_int13)();
 static void (interrupt far *old_int21)();
 static void (interrupt far *old_int25)();
@@ -56,7 +66,7 @@ static bool ReadBootSector(uint8_t far *data)
 
 	bpb->bytes_per_sector = 512;
 	bpb->sectors_per_cluster = 1;
-	bpb->reserved_sectors = 0;
+	bpb->reserved_sectors = 1;  // = boot sector
 	bpb->num_fats = 1;
 	bpb->root_dir_count = 2;
 	bpb->total_sectors = 320;  // 160KiB disk
@@ -68,6 +78,18 @@ static bool ReadBootSector(uint8_t far *data)
 
 static bool ReadDirectory(void far *data)
 {
+	struct fat_dirent far *dirents = data;
+
+	_fmemcpy(dirents[0].name, "SOPWITH1DTA", 11);
+	dirents[0].cluster = SECTOR_SOPWITH1;
+	dirents[0].size = 512;
+
+	_fmemcpy(dirents[1].name, "SEMAPHOR   ", 11);
+	dirents[1].cluster = SECTOR_SEMAPHOR;
+	dirents[1].size = 512;
+
+	_fmemcpy(dirents[2].name, "", 1);
+
 	return true;
 }
 
