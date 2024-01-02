@@ -48,7 +48,7 @@ enum {
 	SECTOR_SEMAPHOR,  // 4   Contents of file SEMAPHOR
 };
 
-static uint8_t ReadBootSector(void far *data)
+static bool ReadBootSector(void far *data)
 {
 	struct bpb far *bpb;
 
@@ -63,24 +63,24 @@ static uint8_t ReadBootSector(void far *data)
 	bpb->media_descriptor = 0;
 	bpb->sectors_per_fat = 1;
 
-	return 0;
+	return true;
 }
 
-static uint8_t ReadDirectory(void far *data)
+static bool ReadDirectory(void far *data)
 {
-	return 0;
+	return true;
 }
 
-static uint8_t ReadSector(void far *data, uint32_t sector, uint16_t cnt)
+static bool ReadSector(void far *data, uint32_t sector, uint16_t cnt)
 {
 	// Only ever one sector:
 	if (cnt != 1) {
-		return 1;
+		return false;
 	}
 
 	// All sectors are low:
 	if (sector > 16) {
-		return 1;
+		return false;
 	}
 
 	++reads;
@@ -93,17 +93,17 @@ static uint8_t ReadSector(void far *data, uint32_t sector, uint16_t cnt)
 
 	case SECTOR_FAT:
 		// Unused.
-		return 0;
+		return false;
 
 	case SECTOR_DIRECTORY:
 		return ReadDirectory(data);
 
 	case SECTOR_SOPWITH1:
 	case SECTOR_SEMAPHOR:
-		return 1;  // TODO
+		return false;  // TODO
 
 	default:
-		return 1;
+		return false;
 	}
 }
 
@@ -118,8 +118,17 @@ static void interrupt far Int13(union INTPACK ip)
 		// BIOS sector numbers are indexed from 1.
 		uint32_t sector = ((uint32_t) ip.x.cx - 1UL)
 			| (((uint32_t) ip.h.dh) << 16);
-		uint8_t result = ReadSector(
+		bool success = ReadSector(
 			MK_FP(ip.x.es, ip.x.bx), sector, ip.h.al);
+		if (success) {
+			ip.w.flags &= ~INTR_CF;
+			ip.h.ah = 0;  // success
+			ip.h.al = 1;  // 1 sector transferred
+		} else {
+			ip.w.flags |= INTR_CF;
+			ip.h.ah = 0x20;
+			ip.h.al = 0;
+		}
 		return;
 	}
 	_chain_intr(old_int13);
@@ -139,8 +148,17 @@ static void interrupt far Int25(union INTPACK ip)
 
 	// al=1 -> Drive B:
 	if (ip.h.al == 1) {
-		uint8_t result = ReadSector(
+		bool success = ReadSector(
 			MK_FP(ip.x.ds, ip.x.bx), ip.x.dx, ip.x.cx);
+		if (success) {
+			ip.w.flags &= ~INTR_CF;
+			ip.h.ah = 0;
+			ip.h.al = 0;
+		} else {
+			ip.w.flags |= INTR_CF;
+			ip.h.ah = 0x20;
+			ip.h.al = 0x0c;  // general failure
+		}
 		return;
 	}
 
