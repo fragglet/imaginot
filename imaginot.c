@@ -48,11 +48,11 @@ enum {
 	SECTOR_SEMAPHOR,  // 4   Contents of file SEMAPHOR
 };
 
-static bool ReadBootSector(void far *data)
+static bool ReadBootSector(uint8_t far *data)
 {
 	struct bpb far *bpb;
 
-	bpb = ((struct bpb far *) data) + 0x0b;
+	bpb = (struct bpb far *) (data + 0x0b);
 
 	bpb->bytes_per_sector = 512;
 	bpb->sectors_per_cluster = 1;
