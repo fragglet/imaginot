@@ -222,6 +222,26 @@ static void interrupt far Int13(union INTPACK ip)
 		}
 		return;
 	}
+
+	// ah=3 -> DISK - WRITE DISK SECTOR(S)
+	// al=1 -> Drive B:
+	if (ip.h.ah == 3 && ip.h.dl == 1) {
+		uint32_t sector = ((uint32_t) ip.x.cx - 1UL)
+			| (((uint32_t) ip.h.dh) << 16);
+		bool success = WriteSector(
+			MK_FP(ip.x.es, ip.x.bx), sector, ip.h.al);
+		if (success) {
+			ip.w.flags &= ~INTR_CF;
+			ip.h.ah = 0;  // success
+			ip.h.al = 1;  // 1 sector written
+		} else {
+			ip.w.flags |= INTR_CF;
+			ip.h.ah = 0x20;
+			ip.h.al = 0;
+		}
+		return;
+	}
+
 	_chain_intr(old_int13);
 }
 
