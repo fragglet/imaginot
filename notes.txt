@@ -74,4 +74,9 @@ During gameplay:
 			- blocks until all other players have also written
 
 
-      
+dkio internals:
+	_dkioset (setup):
+		sets int 0Eh (IRQ6 = disk controller) to _dkhrdint
+		sets int 13h (BIOS API) to _dksftint
+		sets int 1Ch (system timer tick) to _dktckint
+
