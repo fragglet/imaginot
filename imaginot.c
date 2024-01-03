@@ -18,6 +18,8 @@ struct bpb {
 	uint16_t total_sectors;
 	uint8_t media_descriptor;
 	uint16_t sectors_per_fat;
+	uint16_t sectors_per_track;
+	uint16_t num_heads;
 };
 
 struct fat_dirent {
@@ -70,8 +72,10 @@ static bool ReadBootSector(uint8_t far *data)
 	bpb->num_fats = 1;
 	bpb->root_dir_count = 2;
 	bpb->total_sectors = 320;  // 160KiB disk
-	bpb->media_descriptor = 0;
+	bpb->media_descriptor = 0xed;
 	bpb->sectors_per_fat = 1;
+	bpb->sectors_per_track = 10;
+	bpb->num_heads = 1;
 
 	return true;
 }
