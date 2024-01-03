@@ -275,7 +275,27 @@ pop_and_return:
 static void interrupt far Int26(union INTPACK ip)
 {
 	++int26_count;
+
+	// al=1 -> Drive B:
+	if (ip.h.al == 1) {
+		bool success = WriteSector(
+			MK_FP(ip.x.ds, ip.x.bx), ip.x.dx, ip.x.cx);
+		if (success) {
+			ip.w.flags &= ~INTR_CF;
+			ip.h.ah = 0;
+			ip.h.al = 0;
+		} else {
+			ip.w.flags |= INTR_CF;
+			ip.h.ah = 0x20;
+			ip.h.al = 0x0c;  // general failure
+		}
+		goto pop_and_return;
+	}
+
 	_chain_intr(old_int26);
+
+pop_and_return:
+	PopAndReturn();
 }
 
 static void RestoreInterrupts(void)
