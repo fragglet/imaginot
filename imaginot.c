@@ -195,6 +195,14 @@ static void interrupt far Int13(union INTPACK ip)
 {
 	++int13_count;
 
+	// ah=0 -> DISK - RESET DISK SYSTEM
+	// al=1 -> Drive B:
+	if (ip.h.ah == 0 && ip.h.dl == 1) {
+		ip.w.flags &= ~INTR_CF;
+		ip.h.ah = 0;  // success
+		return;
+	}
+
 	// ah=2 -> DISK - READ SECTOR(S) INTO MEMORY
 	// al=1 -> Drive B:
 	if (ip.h.ah == 2 && ip.h.dl == 1) {
