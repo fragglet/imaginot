@@ -37,6 +37,8 @@ static void (interrupt far *old_int21)();
 static void (interrupt far *old_int25)();
 static void (interrupt far *old_int26)();
 
+static bool locked = false;
+
 static bool hooked = false;
 static int int13_count = 0;
 static int int21_count = 0;
@@ -97,6 +99,12 @@ static bool ReadDirectory(void far *data)
 	return true;
 }
 
+static bool ReadSemaphore(void far *data)
+{
+	*((uint8_t far *) data) = locked ? 0xff : 0xfe;
+	return true;
+}
+
 static bool ReadSector(void far *data, uint32_t sector, uint16_t cnt)
 {
 	// Only ever one sector:
@@ -125,9 +133,48 @@ static bool ReadSector(void far *data, uint32_t sector, uint16_t cnt)
 		return ReadDirectory(data);
 
 	case SECTOR_SOPWITH1:
-	case SECTOR_SEMAPHOR:
 		return false;  // TODO
 
+	case SECTOR_SEMAPHOR:
+		return ReadSemaphore(data);
+
+	default:
+		return false;
+	}
+}
+
+static bool WriteSemaphore(void far *data)
+{
+	switch (*((uint8_t far *) data)) {
+	case 0xfe:
+		locked = false;
+		return true;
+	case 0xff:
+		locked = true;
+		return true;
+	default:
+		return false;
+	}
+}
+
+static bool WriteData(void far *data)
+{
+	// TODO
+	return true;
+}
+
+static bool WriteSector(void far *data, uint32_t sector, uint16_t cnt)
+{
+	// Only ever one sector:
+	if (cnt != 1) {
+		return false;
+	}
+
+	switch (sector) {
+	case SECTOR_SEMAPHOR:
+		return WriteSemaphore(data);
+	case SECTOR_SOPWITH1:
+		return WriteData(data);
 	default:
 		return false;
 	}
