@@ -9,6 +9,9 @@
 
 #pragma pack(push, 1)
 
+// Sopwith only allows games 0...7
+#define NUM_GAMES 8
+
 struct bpb {
 	uint16_t bytes_per_sector;
 	uint8_t sectors_per_cluster;
@@ -74,7 +77,7 @@ static bool ReadBootSector(uint8_t far *data)
 	bpb->sectors_per_cluster = 1;
 	bpb->reserved_sectors = 1;  // = boot sector
 	bpb->num_fats = 1;
-	bpb->root_dir_count = 2;
+	bpb->root_dir_count = NUM_GAMES + 1;
 	bpb->total_sectors = 320;  // 160KiB disk
 	bpb->media_descriptor = 0xed;
 	bpb->sectors_per_fat = 1;
@@ -87,16 +90,21 @@ static bool ReadBootSector(uint8_t far *data)
 static bool ReadDirectory(void far *data)
 {
 	struct fat_dirent far *dirents = data;
+	int i;
 
-	_fmemcpy(dirents[0].name, "SOPWITH1DTA", 11);
-	dirents[0].cluster = SECTOR_SOPWITH1;
+	_fmemcpy(dirents[0].name, "SEMAPHOR   ", 11);
+	dirents[0].cluster = SECTOR_SEMAPHOR;
 	dirents[0].size = 512;
 
-	_fmemcpy(dirents[1].name, "SEMAPHOR   ", 11);
-	dirents[1].cluster = SECTOR_SEMAPHOR;
-	dirents[1].size = 512;
-
-	_fmemcpy(dirents[2].name, "", 1);
+	// We make 7 files for sopwith0...7.dta, but they all point
+	// to the same cluster on "disk":
+	for (i = 0; i < NUM_GAMES; i++)
+	{
+		_fmemcpy(dirents[i + 1].name, "SOPWITH0DTA", 11);
+		dirents[i + 1].name[7] += i;
+		dirents[i + 1].cluster = SECTOR_SOPWITH1;
+		dirents[i + 1].size = 512;
+	}
 
 	return true;
 }
