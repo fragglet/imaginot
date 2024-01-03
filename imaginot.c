@@ -46,6 +46,8 @@ static int int25_count = 0;
 static int int26_count = 0;
 static int reads = 0;
 
+static uint8_t data_bytes[40];
+
 //
 // Emulated floppy disk:
 // Imaginet worked by sharing a floppy drive at the raw, hardware level.
@@ -105,6 +107,12 @@ static bool ReadSemaphore(void far *data)
 	return true;
 }
 
+static bool ReadData(void far *data)
+{
+	_fmemcpy(data, data_bytes, 40);
+	return true;
+}
+
 static bool ReadSector(void far *data, uint32_t sector, uint16_t cnt)
 {
 	// Only ever one sector:
@@ -133,7 +141,7 @@ static bool ReadSector(void far *data, uint32_t sector, uint16_t cnt)
 		return ReadDirectory(data);
 
 	case SECTOR_SOPWITH1:
-		return false;  // TODO
+		return ReadData(data);
 
 	case SECTOR_SEMAPHOR:
 		return ReadSemaphore(data);
@@ -159,7 +167,7 @@ static bool WriteSemaphore(void far *data)
 
 static bool WriteData(void far *data)
 {
-	// TODO
+	_fmemcpy(data_bytes, data, 40);
 	return true;
 }
 
