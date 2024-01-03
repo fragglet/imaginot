@@ -44,7 +44,7 @@ static int int13_count = 0;
 static int int21_count = 0;
 static int int25_count = 0;
 static int int26_count = 0;
-static int reads = 0;
+static int reads = 0, writes = 0;
 
 static uint8_t data_bytes[40];
 
@@ -178,6 +178,8 @@ static bool WriteSector(void far *data, uint32_t sector, uint16_t cnt)
 		return false;
 	}
 
+	++writes;
+
 	switch (sector) {
 	case SECTOR_SEMAPHOR:
 		return WriteSemaphore(data);
@@ -290,6 +292,7 @@ static void RestoreInterrupts(void)
 		printf(" int 25 calls: %7d\n", int25_count);
 		printf(" int 26 calls: %7d\n", int26_count);
 		printf(" reads:        %7d\n", reads);
+		printf(" writes:       %7d\n", writes);
 	}
 }
 
