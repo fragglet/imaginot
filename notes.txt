@@ -129,4 +129,5 @@ Decompiled SWMULTIO format for sopwith2.exe (doesn't match released src):
         unsigned mu_key[MAX_PLYR];         +3      <- should be MAX_PLYR*2 ?
         unsigned mu_state[MAX_PLYR];       +11     <- doesn't match
         unsigned mu_explseed;              +15
+        ^^ should all be byte fields
 
