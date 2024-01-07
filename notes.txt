@@ -75,10 +75,50 @@ During gameplay:
 
 
 dkio internals:
+	basically an implementation of coroutines where a background process
+	is started that can be paused to block until an amount of time has
+	passed or an interrupt has been received
+
+	_dkproc:
+		starts a background coroutine; switches stack and then invokes
+		the function passed as an argument.
+		dkiosts is changed to DKINPROC while the coroutine is active
+		and then changes back to DKIDLE when complete
+	_dktick:
+		suspends the current coroutine until a timer has expired
+		tickcount saves the number of ticks to wait
+		dkiosts is changed to DKTICK until timer expires
+		switches back to normal stack and returns thru eg. _dkproc
+		(or whatever was happening when the last interrupt suspended
+		the normal process)
+	_dktckint:
+		ISR invoked by timer interrupt
+		decrements tickcount
+		once it reaches zero, _dkresume is invoked
+	_dkresume:
+		called internally by other _dkio code
+		switches stacks and restarts coroutine
+	_dkwait:
+		called internally by interrupt code
+		sets dkiosts to DKWAIT to block until an interrupt is rxed
+		switches back to normal stack, returns to whatever the
+		normal code was doing
 	_dkioset (setup):
 		sets int 0Eh (IRQ6 = disk controller) to _dkhrdint
 		sets int 13h (BIOS API) to _dksftint
 		sets int 1Ch (system timer tick) to _dktckint
+	_dksftint:
+		13h BIOS interrupt wrapper
+		1. busy loop if interrupt rxed, if currenly waiting
+		2. in case of DKINPROC (coroutine active), we invoke special
+		   code. all swmultio _dkio calls happen inside coroutine
+		3. special code (labels bg2, bg3, bg4) handle BIOS 13h
+		   interrupt calls for read, write, verify, format, status
+		4. rdwrvr handles read/write (the one we care about most)
+		5. normal code path: rdwrvr -> rwv1 -> rwv2 -> nsp1
+		6. waitwrun uses _dkwait to wait to block until interrupt
+		7. _dkhrdint calls _dkresume to contine 13h call. motor now on
+		8. sk4 -> return to caller
 
 Decompiled SWMULTIO format for sopwith2.exe (doesn't match released src):
 
