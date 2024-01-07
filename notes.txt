@@ -80,3 +80,13 @@ dkio internals:
 		sets int 13h (BIOS API) to _dksftint
 		sets int 1Ch (system timer tick) to _dktckint
 
+Decompiled SWMULTIO format for sopwith2.exe (doesn't match released src):
+
+ @0x7cb                                    int off
+        unsigned mu_maxplyr;
+        unsigned mu_numplyr;               +1
+        unsigned mu_lstplyr;               +2
+        unsigned mu_key[MAX_PLYR];         +3      <- should be MAX_PLYR*2 ?
+        unsigned mu_state[MAX_PLYR];       +11     <- doesn't match
+        unsigned mu_explseed;              +15
+
