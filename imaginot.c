@@ -12,6 +12,12 @@
 // Sopwith only allows games 0...7
 #define NUM_GAMES 8
 
+enum {
+	PLAYER_WAITING = 0,
+	PLAYER_FLYING = 1,
+	PLAYER_FINISHED = 91,
+};
+
 struct bpb {
 	uint16_t bytes_per_sector;
 	uint8_t sectors_per_cluster;
@@ -33,6 +39,16 @@ struct fat_dirent {
 	uint16_t date;
 	uint16_t cluster;
 	uint32_t size;
+};
+
+// Format of the Sopwith communications buffer (sopwith1.dta):
+struct sop_multio {
+	uint8_t max_players;
+	uint8_t num_players;
+	uint8_t last_player;
+	uint8_t key[8];
+	uint8_t state[4];
+	uint8_t explseed;
 };
 
 static void (interrupt far *old_int13)();
@@ -176,6 +192,14 @@ static bool WriteSemaphore(void far *data)
 static bool WriteData(void far *data)
 {
 	_fmemcpy(data_bytes, data, 40);
+
+	{ // TODO: Temporary hack.
+	struct sop_multio *multio = (void *) data_bytes;
+
+	multio->state[1] = PLAYER_FLYING;
+	multio->num_players = 2;
+	multio->last_player = 1;
+	}
 	return true;
 }
 
