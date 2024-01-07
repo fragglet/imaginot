@@ -266,6 +266,7 @@ static void interrupt far Int21(union INTPACK ip)
 // retf instead of iret.
 extern void PopAndReturn();
 #pragma aux PopAndReturn = \
+    "sti" \
     "pop ax" \
     "pop ax" \
     "pop es" \
