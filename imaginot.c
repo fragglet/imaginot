@@ -285,6 +285,7 @@ extern void PopAndReturn();
 static void interrupt far Int25(union INTPACK ip)
 {
 	++int25_count;
+	_dos_setvect(0x13, Int13);
 
 	// al=1 -> Drive B:
 	if (ip.h.al == 1) {
@@ -312,6 +313,7 @@ pop_and_return:
 static void interrupt far Int26(union INTPACK ip)
 {
 	++int26_count;
+	_dos_setvect(0x13, Int13);
 
 	// al=1 -> Drive B:
 	if (ip.h.al == 1) {
