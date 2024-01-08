@@ -46,7 +46,7 @@ struct sop_multio {
 	uint8_t max_players;
 	uint8_t num_players;
 	uint8_t last_player;
-	uint8_t key[8];
+	uint16_t key[4];
 	uint8_t state[4];
 	uint8_t explseed;
 };
