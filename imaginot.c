@@ -197,8 +197,13 @@ static bool WriteData(void far *data)
 	struct sop_multio *multio = (void *) data_bytes;
 
 	multio->state[1] = PLAYER_FLYING;
-	multio->num_players = 2;
-	multio->last_player = 1;
+	multio->state[2] = PLAYER_FLYING;
+	multio->state[3] = PLAYER_FLYING;
+	multio->num_players = 4;
+	multio->last_player = 3;
+	multio->key[1] = multio->key[0];
+	multio->key[2] = multio->key[0];
+	multio->key[3] = multio->key[0];
 	}
 	return true;
 }
