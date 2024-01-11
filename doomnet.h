@@ -15,12 +15,6 @@
 
 #include "lib/inttypes.h"
 
-// Original Doom *setup tools only allowed up to 4 players; however, Hexen
-// and Strife allowed up to 8 players. Since we have vrottcom/vcommit
-// which support even more players, we bump this up to 16.
-#define MAXNETNODES     16
-#define MAXPLAYERS      16
-
 #define CMD_SEND    1
 #define CMD_GET     2
 
@@ -63,41 +57,7 @@ typedef struct {
 #define NCMD_KILL       0x10000000l     // kill game
 #define NCMD_CHECKSUM   0x0fffffffl
 
-// The data sampled per tick (single player)
-// and transmitted to other peers (multiplayer).
-// Mainly movements/button commands per game tick,
-// plus a checksum for internal state consistency.
-typedef struct
-{
-    char        forwardmove;    // *2048 for move
-    char        sidemove;       // *2048 for move
-    short       angleturn;      // <<16 for angle delta
-    short       consistancy;    // checks for net game
-    unsigned char chatchar;
-    unsigned char buttons;
-} ticcmd_t;
-
-//
-// Network packet data.
-//
-typedef struct
-{
-    // High bit is retransmit request.
-    unsigned long       checksum;
-    // Only valid if NCMD_RETRANSMIT.
-    unsigned char       retransmitfrom;
-    unsigned char       starttic;
-    unsigned char       player;
-    unsigned char       numtics;
-    ticcmd_t            cmds[BACKUPTICS];
-} doompacket_t;
-
-void NetRegisterFlags(void);
-void NetLaunchDoom(doomcom_t far *doomcom, char **args,
-                   void (*callback)(void));
 doomcom_t far *NetGetHandle(long l);
 void NetSendPacket(doomcom_t far *doomcom);
 int NetGetPacket(doomcom_t far *doomcom);
-
-extern int doomnet_dup, doomnet_extratics;
 
