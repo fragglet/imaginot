@@ -131,3 +131,50 @@ Decompiled SWMULTIO format for sopwith2.exe (doesn't match released src):
         unsigned mu_explseed;              +15
         ^^ should all be byte fields
 
+Sopwith 1 version:
+
+        unsigned mu_maxplyr;
+        unsigned mu_numplyr;
+        unsigned unknown1;
+        unsigned unknown2;
+        unsigned mu_key[MAX_PLYR];             +0x08
+        unsigned mu_unknown[MAX_PLYR];         +0x10
+        unsigned mu_state[MAX_PLYR];           +0x18
+
+
+
+
+          if ( first = !mu->mu_numplyr ) {
+                mu->mu_maxplyr = getmaxplyr();
+                mu->mu_numplyr = 0;
+                mu->mu_explseed = explseed;
+  if ((uVar4 ^ 1) != 0) {
+    piVar2[2] = 0;              ?
+    iVar5 = getmaxplyr();
+    *piVar2 = iVar5;            mu->mu_maxplyr = getmaxplyr();
+    iVar5 = FUN_1000_2363();
+    piVar2[3] = iVar5;          ?
+    piVar2[1] = 0;              mu->mu_numplyr = 0;
+  }
+
+  *(int *)0x38eb = piVar2[2] * 0x76 + 0x97d;
+  *(int *)0x38e9 = piVar2[3];
+  if (*piVar2 <= piVar2[1]) {          if ( mu->mu_numplyr >= mu->mu_maxplyr )
+    swend(0x37f,0);                       swend( "Mamimum number of players already playing", NO );
+  }
+  piVar1 = piVar2 + 1;
+  *piVar1 = *piVar1 + 1;               ++mu->mu_numplyr;
+
+      piVar1[local_8 + 8] = 0;
+      piVar1[local_8 + 4] = 0;             mu->mu_key[n] = 0;
+      piVar1[local_8 + 0xc] = 1;           mu->mu_state[n] = FLYING;
+
+                        mu->mu_key[n] = 0;
+                        mu->mu_state[n] = FLYING;
+                        mu->mu_lstplyr = n;
+
+
+        *(undefined2 *)(*(int *)0x868 + 0x18 + *(int *)0x9867 * 2) = 3;     multbuff->mu_state[player] = FINISHED;
+        *(undefined2 *)(*(int *)0x868 + 0x10 + *(int *)0x9867 * 2) = 0;
+        *(undefined2 *)(*(int *)0x868 + 8 + *(int *)0x9867 * 2) = 0;        multbuff->mu_key[player] = 0;
+        bVar1 = true;
