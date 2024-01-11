@@ -6,7 +6,7 @@ SOURCE_DIRS = lib
 CFLAGS = -I. -q -onx -w3
 LDFLAGS = -q
 
-OBJS = bld\imaginot.o bld\doomnet.o bld\common.lib
+OBJS = bld\fakedisk.o bld\imaginot.o bld\doomnet.o bld\common.lib
 EXE = imaginot.exe
 
 all: $(EXE)
