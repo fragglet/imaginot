@@ -70,7 +70,13 @@ void InitProtocol(doomcom_t far *dc)
 
 static void SendPacket(struct node *dest)
 {
-    // TODO: Send to node 0 is loopback
+    // Loopback send:
+    if (dest == &nodes[0])
+    {
+        memcpy(&dest->recv_window, &dest->send_window,
+               sizeof(struct window));
+        return;
+    }
 
     pkt->start = dest->send_window.start;
     pkt->ack = dest->recv_window.start + dest->recv_window.len;
