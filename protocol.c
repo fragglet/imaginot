@@ -11,6 +11,17 @@
 #define MAX_DELAY 16
 #define DELAY  4  /* currently hard-coded */
 
+#pragma pack(push, 1)
+struct packet {
+    uint32_t checksum;
+    uint32_t start;
+    uint32_t ack;
+    uint8_t player;
+    uint8_t num_cmds;
+    uint16_t cmds[MAX_DELAY];
+};
+#pragma pack(pop)
+
 struct window {
     uint32_t start;
     uint8_t len;
