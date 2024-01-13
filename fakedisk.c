@@ -29,18 +29,21 @@
 // Sopwith only allows games 0...7
 #define NUM_GAMES 8
 
-enum state {
+enum state
+{
     STATE_INIT,  // Providing the data for init1mul(), init2mul()
     STATE_INGAME,
 };
 
-enum {
+enum
+{
     PLAYER_WAITING = 0,
     PLAYER_FLYING = 1,
     PLAYER_FINISHED = 91,
 };
 
-struct bpb {
+struct bpb
+{
     uint16_t bytes_per_sector;
     uint8_t sectors_per_cluster;
     uint16_t reserved_sectors;
@@ -53,7 +56,8 @@ struct bpb {
     uint16_t num_heads;
 };
 
-struct fat_dirent {
+struct fat_dirent
+{
     char name[11];
     uint8_t attr;
     uint8_t res[10];
@@ -64,7 +68,8 @@ struct fat_dirent {
 };
 
 // Format of the Sopwith communications buffer (sopwith1.dta):
-struct sop_multio {
+struct sop_multio
+{
     uint8_t max_players;
     uint8_t num_players;
     uint8_t last_player;
@@ -97,7 +102,8 @@ static struct sop_multio multio;
 // the disk. So we emulate a simple DOS drive and barebones FAT12:
 //
 //
-enum {
+enum
+{
     //            Sector #   Purpose
     SECTOR_BOOT,      // 0   Boot sector & BIOS parameter block (BPB)
     SECTOR_FAT,       // 1   File allocation table
@@ -184,12 +190,14 @@ static bool ReadData(void far *data)
 static bool ReadSector(void far *data, uint32_t sector, uint16_t cnt)
 {
     // Only ever one sector:
-    if (cnt != 1) {
+    if (cnt != 1)
+    {
         return false;
     }
 
     // All sectors are low:
-    if (sector > 16) {
+    if (sector > 16)
+    {
         return false;
     }
 
@@ -197,7 +205,8 @@ static bool ReadSector(void far *data, uint32_t sector, uint16_t cnt)
 
     _fmemset(data, 0, 512);
 
-    switch (sector) {
+    switch (sector)
+    {
     case SECTOR_BOOT:
         return ReadBootSector(data);
 
@@ -221,7 +230,8 @@ static bool ReadSector(void far *data, uint32_t sector, uint16_t cnt)
 
 static bool WriteSemaphore(void far *data)
 {
-    switch (*((uint8_t far *) data)) {
+    switch (*((uint8_t far *) data))
+    {
     case 0xfe:
         locked = false;
         return true;
@@ -270,13 +280,15 @@ static bool WriteData(void far *data)
 static bool WriteSector(void far *data, uint32_t sector, uint16_t cnt)
 {
     // Only ever one sector:
-    if (cnt != 1) {
+    if (cnt != 1)
+    {
         return false;
     }
 
     ++writes;
 
-    switch (sector) {
+    switch (sector)
+    {
     case SECTOR_SEMAPHOR:
         return WriteSemaphore(data);
     case SECTOR_SOPWITH1:
@@ -293,7 +305,8 @@ static void interrupt far Int13(union INTPACK ip)
 
     // ah=0 -> DISK - RESET DISK SYSTEM
     // al=1 -> Drive B:
-    if (ip.h.ah == 0 && ip.h.dl == 1) {
+    if (ip.h.ah == 0 && ip.h.dl == 1)
+    {
         ip.w.flags &= ~INTR_CF;
         ip.h.ah = 0;  // success
         return;
@@ -301,17 +314,21 @@ static void interrupt far Int13(union INTPACK ip)
 
     // ah=2 -> DISK - READ SECTOR(S) INTO MEMORY
     // al=1 -> Drive B:
-    if (ip.h.ah == 2 && ip.h.dl == 1) {
+    if (ip.h.ah == 2 && ip.h.dl == 1)
+    {
         // BIOS sector numbers are indexed from 1.
         uint32_t sector = ((uint32_t) ip.x.cx - 1UL)
             | (((uint32_t) ip.h.dh) << 16);
         bool success = ReadSector(
             MK_FP(ip.x.es, ip.x.bx), sector, ip.h.al);
-        if (success) {
+        if (success)
+        {
             ip.w.flags &= ~INTR_CF;
             ip.h.ah = 0;  // success
             ip.h.al = 1;  // 1 sector transferred
-        } else {
+        }
+        else
+        {
             ip.w.flags |= INTR_CF;
             ip.h.ah = 0x20;
             ip.h.al = 0;
@@ -321,16 +338,20 @@ static void interrupt far Int13(union INTPACK ip)
 
     // ah=3 -> DISK - WRITE DISK SECTOR(S)
     // al=1 -> Drive B:
-    if (ip.h.ah == 3 && ip.h.dl == 1) {
+    if (ip.h.ah == 3 && ip.h.dl == 1)
+    {
         uint32_t sector = ((uint32_t) ip.x.cx - 1UL)
             | (((uint32_t) ip.h.dh) << 16);
         bool success = WriteSector(
             MK_FP(ip.x.es, ip.x.bx), sector, ip.h.al);
-        if (success) {
+        if (success)
+        {
             ip.w.flags &= ~INTR_CF;
             ip.h.ah = 0;  // success
             ip.h.al = 1;  // 1 sector written
-        } else {
+        }
+        else
+        {
             ip.w.flags |= INTR_CF;
             ip.h.ah = 0x20;
             ip.h.al = 0;
@@ -376,14 +397,18 @@ static void interrupt far Int25(union INTPACK ip)
     _dos_setvect(0x13, Int13);
 
     // al=1 -> Drive B:
-    if (ip.h.al == 1) {
+    if (ip.h.al == 1)
+    {
         bool success = ReadSector(
             MK_FP(ip.x.ds, ip.x.bx), ip.x.dx, ip.x.cx);
-        if (success) {
+        if (success)
+        {
             ip.w.flags &= ~INTR_CF;
             ip.h.ah = 0;
             ip.h.al = 0;
-        } else {
+        }
+        else
+        {
             ip.w.flags |= INTR_CF;
             ip.h.ah = 0x20;
             ip.h.al = 0x0c;  // general failure
@@ -404,14 +429,18 @@ static void interrupt far Int26(union INTPACK ip)
     _dos_setvect(0x13, Int13);
 
     // al=1 -> Drive B:
-    if (ip.h.al == 1) {
+    if (ip.h.al == 1)
+    {
         bool success = WriteSector(
             MK_FP(ip.x.ds, ip.x.bx), ip.x.dx, ip.x.cx);
-        if (success) {
+        if (success)
+        {
             ip.w.flags &= ~INTR_CF;
             ip.h.ah = 0;
             ip.h.al = 0;
-        } else {
+        }
+        else
+        {
             ip.w.flags |= INTR_CF;
             ip.h.ah = 0x20;
             ip.h.al = 0x0c;  // general failure
@@ -427,7 +456,8 @@ pop_and_return:
 
 void RestoreDiskInterrupts(void)
 {
-    if (hooked) {
+    if (hooked)
+    {
         _dos_setvect(0x13, old_int13);
         _dos_setvect(0x21, old_int21);
         _dos_setvect(0x25, old_int25);
@@ -445,7 +475,8 @@ void RestoreDiskInterrupts(void)
 
 void HookDiskInterrupts(void)
 {
-    if (!hooked) {
+    if (!hooked)
+    {
         old_int13 = _dos_getvect(0x13);
         _dos_setvect(0x13, Int13);
         old_int21 = _dos_getvect(0x21);
