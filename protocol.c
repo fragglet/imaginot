@@ -3,7 +3,9 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <assert.h>
 
+#include "doomnet.h"
 #include "protocol.h"
 
 #define MAX_DELAY 16
@@ -21,13 +23,26 @@ struct node {
     int player;
 };
 
+static doomcom_t far *doomcom;
+static struct packet far *pkt;  // points into doomcom->data
 static struct node nodes[MAX_PLAYERS];
 static uint32_t maketic, gametic;
 static int num_nodes = 2;
 
-void InitProtocol(void)
+void InitProtocol(doomcom_t far *dc)
 {
     int i;
+
+    doomcom = dc;
+    pkt = (struct packet far *) doomcom->data;
+
+    assert(doomcom->numnodes > 1 && doomcom->numnodes < MAX_PLAYERS
+        && doomcom->numplayers > 1 && doomcom->numplayers < MAX_PLAYERS
+        && doomcom->consoleplayer >= 0
+        && doomcom->consoleplayer < doomcom->numplayers);
+
+    num_nodes = doomcom->numnodes;
+    nodes[0].player = doomcom->consoleplayer;
 
     for (i = 0; i < MAX_PLAYERS; i++)
     {
