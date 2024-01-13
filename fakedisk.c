@@ -80,7 +80,7 @@ static int int25_count = 0;
 static int int26_count = 0;
 static int reads = 0, writes = 0;
 
-static uint8_t data_bytes[40];
+static struct sop_multio multio;
 
 //
 // Emulated floppy disk:
@@ -148,7 +148,7 @@ static bool ReadSemaphore(void far *data)
 
 static bool ReadData(void far *data)
 {
-    _fmemcpy(data, data_bytes, 40);
+    _fmemcpy(data, &multio, sizeof(struct sop_multio));
     return true;
 }
 
@@ -206,7 +206,7 @@ static bool WriteSemaphore(void far *data)
 
 static bool WriteData(void far *data)
 {
-    _fmemcpy(data_bytes, data, 40);
+    _fmemcpy(&multio, data, sizeof(struct sop_multio));
 
     { // TODO: Temporary hack.
     struct sop_multio *multio = (void *) data_bytes;
