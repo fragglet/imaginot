@@ -5,11 +5,14 @@
 #include <stdint.h>
 #include <assert.h>
 
+#include "crc32.h"
 #include "doomnet.h"
 #include "protocol.h"
 
 #define MAX_DELAY 16
 #define DELAY  4  /* currently hard-coded */
+
+#define MIN_PACKET_LEN 14
 
 #pragma pack(push, 1)
 struct packet {
@@ -68,6 +71,12 @@ void InitProtocol(doomcom_t far *dc)
     maketic = DELAY - 1;
 }
 
+static uint32_t Checksum(void)
+{
+    return Crc32(doomcom->data + 4, doomcom->datalength - 4)
+         & NCMD_CHECKSUM;
+}
+
 static void SendPacket(struct node *dest)
 {
     // Loopback send:
@@ -89,6 +98,7 @@ static void SendPacket(struct node *dest)
     doomcom->remotenode = dest - nodes;
     doomcom->datalength = sizeof(struct packet)
                         - (MAX_DELAY - pkt->num_cmds) * sizeof(uint16_t);
+    pkt->checksum = Checksum();
 
     // TODO: Checksum
     NetSendPacket(doomcom);
@@ -166,7 +176,9 @@ static void ReceivePacket(struct node *n)
 {
     uint32_t start_index, i;
 
-    if (pkt->player >= MAX_PLAYERS || pkt->num_cmds > MAX_DELAY)
+    if (doomcom->datalength < MIN_PACKET_LEN
+     || pkt->checksum != Checksum()
+     || pkt->player >= MAX_PLAYERS || pkt->num_cmds > MAX_DELAY)
     {
         return;
     }
