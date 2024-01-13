@@ -155,4 +155,68 @@ bool SwapCommand(uint16_t cmd, uint16_t cmds[MAX_PLAYERS])
     return true;
 }
 
+// Process the packet in 'pkt' as being received from the given node.
+static void ReceivePacket(struct node *n)
+{
+    uint32_t start_index, i;
+
+    if (pkt->player >= MAX_PLAYERS || pkt->num_cmds > MAX_DELAY)
+    {
+        return;
+    }
+
+    // We can use the ack field from the peer to discard commands at the
+    // start of the window that are confirmed to have been received.
+    if (pkt->ack > n->send_window.start
+     && pkt->ack <= n->send_window.start + n->send_window.len)
+    {
+        int cnt = n->send_window.start + n->send_window.len
+                - pkt->ack;
+        memmove(n->send_window.cmds, n->send_window.cmds + cnt,
+                (n->send_window.len - cnt) * sizeof(uint16_t));
+        n->send_window.start += cnt;
+        n->send_window.len -= cnt;
+    }
+
+    // Old packet?
+    if (pkt->start < n->recv_window.start)
+    {
+        return;
+    }
+
+    // Offset of new cmds into recv_window:
+    start_index = pkt->start - n->recv_window.start;
+
+    for (i = 0; i < pkt->num_cmds; i++)
+    {
+        if (start_index + i >= MAX_DELAY)
+        {
+            break;
+        }
+
+        n->recv_window.cmds[start_index + i] = pkt->cmds[i];
+        n->recv_window.len = max(n->recv_window.len,
+                                 start_index + i + 1);
+    }
+
+    n->player = pkt->player;
+}
+
+void ReceivePackets(void)
+{
+    for (;;)
+    {
+        doomcom->command = CMD_GET;
+        NetGetPacket(doomcom);
+
+        if (doomcom->remotenode < 0)
+        {
+            break;
+        }
+
+        assert(doomcom->remotenode < num_nodes);
+
+        ReceivePacket(&nodes[doomcom->remotenode]);
+    }
+}
 
