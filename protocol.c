@@ -87,8 +87,8 @@ static void SendPacket(struct node *dest)
 
     doomcom->command = CMD_SEND;
     doomcom->remotenode = dest - nodes;
-    doomcom->datalength =
-        sizeof(struct packet) + pkt->num_cmds * sizeof(uint16_t);
+    doomcom->datalength = sizeof(struct packet)
+                        - (MAX_DELAY - pkt->num_cmds) * sizeof(uint16_t);
 
     // TODO: Checksum
     NetSendPacket(doomcom);
