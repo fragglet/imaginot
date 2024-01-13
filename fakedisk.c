@@ -20,12 +20,19 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "doomnet.h"
 #include "fakedisk.h"
+#include "protocol.h"
 
 #pragma pack(push, 1)
 
 // Sopwith only allows games 0...7
 #define NUM_GAMES 8
+
+enum state {
+    STATE_INIT,  // Providing the data for init1mul(), init2mul()
+    STATE_INGAME,
+};
 
 enum {
     PLAYER_WAITING = 0,
@@ -79,6 +86,7 @@ static int int21_count = 0;
 static int int25_count = 0;
 static int int26_count = 0;
 static int reads = 0, writes = 0;
+static enum state state = STATE_INIT;
 
 static struct sop_multio multio;
 
@@ -148,6 +156,27 @@ static bool ReadSemaphore(void far *data)
 
 static bool ReadData(void far *data)
 {
+    int i;
+
+    switch (state)
+    {
+    case STATE_INIT:
+        // Sopwith is reading to assign itself a player number.
+        // To do this, we pretend that a number of players have already
+        // registered themselves so that it will get the right number.
+        multio.max_players = num_players;
+        multio.num_players = consoleplayer;
+        for (i = 0; i < num_players; i++)
+        {
+            multio.state[i] =
+                i < consoleplayer ? PLAYER_FLYING : PLAYER_WAITING;
+        }
+        break;
+
+    case STATE_INGAME:
+        break;
+    }
+
     _fmemcpy(data, &multio, sizeof(struct sop_multio));
     return true;
 }
@@ -206,20 +235,35 @@ static bool WriteSemaphore(void far *data)
 
 static bool WriteData(void far *data)
 {
+    int i;
+
     _fmemcpy(&multio, data, sizeof(struct sop_multio));
 
-    { // TODO: Temporary hack.
-    struct sop_multio *multio = (void *) data_bytes;
+    switch (state)
+    {
+    case STATE_INIT:
+        // The first write by Sopwith is to increment the player count
+        // and set its state to FLYING, which it does to share with
+        // peers that it is here and ready. Once this happens, we can
+        // simulate all the other players being ready too.
+        for (i = 0; i < num_players; i++)
+        {
+            multio.state[i] = PLAYER_FLYING;
+        }
+        multio.num_players = num_players;
+        multio.last_player = num_players - 1;
+        state = STATE_INGAME;
+        break;
 
-    multio->state[1] = PLAYER_FLYING;
-    multio->state[2] = PLAYER_FLYING;
-    multio->state[3] = PLAYER_FLYING;
-    multio->num_players = 4;
-    multio->last_player = 3;
-    multio->key[1] = multio->key[0];
-    multio->key[2] = multio->key[0];
-    multio->key[3] = multio->key[0];
+    case STATE_INGAME:
+        multio.last_player = num_players - 1;
+        for (i = 0; i < MAX_PLAYERS; i++)
+        {
+            multio.key[i] = multio.key[consoleplayer];
+        }
+        break;
     }
+
     return true;
 }
 
