@@ -50,8 +50,8 @@ void InitProtocol(doomcom_t far *dc)
     doomcom = dc;
     pkt = (struct packet far *) doomcom->data;
 
-    assert(doomcom->numnodes > 1 && doomcom->numnodes < MAX_PLAYERS
-        && doomcom->numplayers > 1 && doomcom->numplayers < MAX_PLAYERS
+    assert(doomcom->numnodes > 1 && doomcom->numnodes <= MAX_PLAYERS
+        && doomcom->numplayers > 1 && doomcom->numplayers <= MAX_PLAYERS
         && doomcom->consoleplayer >= 0
         && doomcom->consoleplayer < doomcom->numplayers);
 
