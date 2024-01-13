@@ -55,6 +55,7 @@ static struct packet far *pkt;  // points into doomcom->data
 static struct node nodes[MAX_PLAYERS];
 static uint32_t maketic, gametic;
 static int num_nodes = 2;
+int consoleplayer, num_players;
 
 void InitProtocol(doomcom_t far *dc)
 {
@@ -70,6 +71,8 @@ void InitProtocol(doomcom_t far *dc)
 
     num_nodes = doomcom->numnodes;
     nodes[0].player = doomcom->consoleplayer;
+    consoleplayer = doomcom->consoleplayer;
+    num_players = doomcom->numplayers;
 
     for (i = 0; i < MAX_PLAYERS; i++)
     {
