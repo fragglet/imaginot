@@ -14,9 +14,9 @@
 
 #include <stdlib.h>
 #include <bios.h>
+#include <stdint.h>
 
 #include "lib/dos.h"
-#include "lib/inttypes.h"
 
 long GetEntropy(void)
 {

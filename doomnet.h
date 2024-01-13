@@ -13,7 +13,7 @@
 // GNU General Public License for more details.
 //
 
-#include "lib/inttypes.h"
+#include <stdint.h>
 
 #define CMD_SEND    1
 #define CMD_GET     2
