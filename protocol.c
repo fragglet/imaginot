@@ -68,6 +68,26 @@ void InitProtocol(doomcom_t far *dc)
     maketic = DELAY - 1;
 }
 
+static void SendPacket(struct node *dest)
+{
+    // TODO: Send to node 0 is loopback
+
+    pkt->start = dest->send_window.start;
+    pkt->ack = dest->recv_window.start + dest->recv_window.len;
+    pkt->player = nodes[0].player;
+    pkt->num_cmds = dest->send_window.len;
+    _fmemmove(pkt->cmds, dest->send_window.cmds,
+              dest->send_window.len * sizeof(uint16_t));
+
+    doomcom->command = CMD_SEND;
+    doomcom->remotenode = dest - nodes;
+    doomcom->datalength =
+        sizeof(struct packet) + pkt->num_cmds * sizeof(uint16_t);
+
+    // TODO: Checksum
+    NetSendPacket(doomcom);
+}
+
 // Returns true if there is at least one tic working in the receive
 // window from every player.
 static bool NewTicReady(void)
@@ -99,8 +119,9 @@ bool SwapCommand(uint16_t cmd, uint16_t cmds[MAX_PLAYERS])
         {
             nodes[i].send_window.cmds[new_len] = cmd;
             ++nodes[i].send_window.len;
+            SendPacket(&nodes[i]);
         }
-        // TODO: Send packet
+        // TODO: We should also resend if we have not sent a packet recently.
     }
 
     if (!NewTicReady())
