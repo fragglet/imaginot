@@ -32,3 +32,9 @@ clean:
 	del bld\*.o
 	del bld\*.lib
 	del $(EXE)
+
+rel: $(EXE)
+	!copy dist\*.* rel\
+	vsetargs rel\ipxsetup.exe imaginot sopwith2 -db
+	vsetargs rel\udpsetup.exe imaginot sopwith2 -db
+	!copy imaginot.exe rel\
