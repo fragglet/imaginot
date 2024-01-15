@@ -260,6 +260,7 @@ static bool WriteSemaphore(void far *data)
 
 static bool WriteData(void far *data)
 {
+    static uint16_t cmd_buf[MAX_PLAYERS];
     int i;
 
     _fmemcpy(&multio, data, sizeof(struct sop_multio));
@@ -285,10 +286,16 @@ static bool WriteData(void far *data)
         // we just fall straight through to the write stage.
 
     case STATE_WAITING_WRITE:
-        // Copy to other players. TODO: Call SwapCommand().
+        // The commands from other players might not have all arrived
+        // yet, in which case we kick the ball back to Sopwith by
+        // simulating a failed write; it will try again after a delay.
+        if (!SwapCommand(multio.key[consoleplayer], cmd_buf))
+        {
+            return false;
+        }
         for (i = 0; i < num_players; i++)
         {
-            multio.key[i] = multio.key[consoleplayer];
+            multio.key[i] = cmd_buf[i];
         }
         multio.last_player = num_players - 1;
         state = STATE_WAITING_READ;
