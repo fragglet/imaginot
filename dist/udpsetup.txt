@@ -1,3 +1,7 @@
+The following intructions are from the *vanilla-utilities* collection
+of Doom network drivers; the instructions have been updated with
+examples that will work with *Imaginot* and *Sopwith*.
+
 `udpsetup` is a Doom network driver that communicates over the UDP/IP
 protocol, allowing Doom multiplayer games to be played over the
 Internet using the original DOS versions.
@@ -59,12 +63,12 @@ suggested that you search the web for information.
 The server is started using the `-s` option. For example, to set up a
 four player deathmatch game:
 ```
-C:\DOOM>udpsetup -s -nodes 4 doom -deathmatch
+C:\DOOM>udpsetup -s -nodes 4
 ```
 By default the server runs on UDP port 213. To change this, use the `-udpport`
 command line option. For example to listen on port 10000 instead:
 ```
-C:\DOOM>udpsetup -s -nodes 4 -udpport 10000 doom -deathmatch
+C:\DOOM>udpsetup -s -nodes 4 -udpport 10000
 ```
 
 ### Connecting to the server
@@ -72,76 +76,16 @@ C:\DOOM>udpsetup -s -nodes 4 -udpport 10000 doom -deathmatch
 Other players connect to the server using the `-c` option (it is not necessary
 for clients to set up a port forward). For example:
 ```
-C:\DOOM>udpsetup -c 10.0.3.4 -nodes 4 doom -deathmatch
+C:\DOOM>udpsetup -c 10.0.3.4
 ```
 Unfortunately at the time of writing, DNS names are not supported (you
 *must* provide an IP address).
-
-As with other DOS Doom network drivers, the same command line options
-must be provided by all players or a desync may occur.
-Note that it is also necessary to provide the name of the `.exe` program
-to run (when playing Doom, usually `DOOM.EXE` or `DOOM2.EXE`). The
-reason for this is covered in the next section.
-
-## Playing other games
-
-### Source ports
-
-`udpsetup` can also be used with DOS source ports that support the original
-network driver interface. For example, to use the `MBF` (Marine's Best Friend)
-port:
-```
-C:\DOOM>udpsetup -s -nodes 4 mbf -deathmatch
-```
-and
-```
-C:\DOOM>udpsetup -c 10.0.3.4 -nodes 4 mbf -deathmatch
-```
-
-### Heretic, Hexen, Strife, Chex Quest and others
-
-`udpsetup` can be run with other Doom engine-based games -- all the
-commercially released Doom engine games also supported multiplayer. For
-example, to set up a Hexen game:
-```
-C:\HEXEN>udpsetup -s -nodes 4 hexen -deathmatch
-```
-and
-```
-C:\HEXEN>udpsetup -c 10.0.3.4 -nodes 4 hexen -deathmatch
-```
-
-### Duke Nukem 3D and other BUILD engine games
-
-`udpsetup` can be used with BUILD engine games by using the `vcommit` adapter
-driver that also ships with the Vanilla Utilities.
-A demo video [can be found here](https://youtu.be/4L5wVLp5wVE).
-For example, to start a Duke Nukem 3D game:
-```
-C:\DUKE3D>udpsetup -s -nodes 4 vcommit duke3d
-```
-and
-```
-C:\DUKE3D>udpsetup -c 10.0.3.4 -nodes 4 vcommit duke3d
-```
-
-### Rise of the Triad
-
-`udpsetup` can be used to play *Rise of the Triad* using the `vrottcom` adapter
-that ships with the Vanilla Utilities. For example:
-```
-C:\ROTT>udpsetup -s -nodes 4 vrottcom rott
-```
-and
-```
-C:\ROTT>udpsetup -c 10.0.3.4 -nodes 4 vrottcom rott
-```
 
 ## Interfacing with DOSbox
 
 Beneath the hood, `udpsetup` uses the same protocol as DOSbox uses for IPX
 tunnelling. Essentially a "virtual" `ipxsetup` game is being run, that DOSbox
-clients can communicate with. This allows emulated Doom clients running inside
+clients can communicate with. This allows emulated clients running inside
 DOSbox to interact with real vintage DOS/Windows 9x machines.
 
 ### Connecting to a DOSbox server
@@ -151,20 +95,20 @@ server. To start a DOSbox server in the usual way on UDP port 10000:
 ```
 C:\DOOM>config -set ipx true
 C:\DOOM>ipxnet startserver 10000
-C:\DOOM>ipxsetup -nodes 3 doom -deathmatch
+C:\DOOM>ipxsetup -nodes 3
 ```
 
 Then to connect to the server using `udpsetup` if it were running at
 `34.66.233.240`:
 ```
-C:\DOOM>udpsetup -c 34.66.233.240:10000 -nodes 3 doom -deathmatch
+C:\DOOM>udpsetup -c 34.66.233.240:10000 -nodes 3
 ```
 
 DOSbox clients connect to the server in the usual way and also use `ipxsetup`:
 ```
 C:\DOOM>config -set ipx true
 C:\DOOM>ipxnet connect 34.66.233.240 10000
-C:\DOOM>ipxsetup -nodes 3 doom -deathmatch
+C:\DOOM>ipxsetup -nodes 3
 ```
 
 ### Connecting to a udpsetup server from DOSbox
@@ -172,7 +116,7 @@ C:\DOOM>ipxsetup -nodes 3 doom -deathmatch
 DOSbox can connect to a `udpsetup` server the same as any other server. For
 example to start a server on port 10000:
 ```
-C:\DOOM>udpsetup -s -udpport 10000 -nodes 3 doom -deathmatch
+C:\DOOM>udpsetup -s -udpport 10000 -nodes 3
 ```
 
 DOSbox clients can then connect to the server and use `ipxsetup` (in this
@@ -180,25 +124,10 @@ example the server is running at `34.66.233.240`):
 ```
 C:\DOOM>config -set ipx true
 C:\DOOM>ipxnet connect 34.66.233.240 10000
-C:\DOOM>ipxsetup -nodes 3 doom -deathmatch
+C:\DOOM>ipxsetup -nodes 3
 ```
 
 Other udpsetup` clients can also connect:
 ```
-C:\DOOM>udpsetup -c 34.66.233.240:10000 -nodes 3 doom -deathmatch
+C:\DOOM>udpsetup -c 34.66.233.240:10000 -nodes 3
 ```
-
-### Chocolate Doom
-
-[Chocolate Doom](https://www.chocolate-doom.org/) also supports the DOSbox
-protocol, at least on the `vanilla-net` development branch. To connect
-Chocolate Doom to a `udpsetup` server:
-```
-C:\DOOM>udpsetup -s -udpport 10000 doom -deathmatch
-```
-and
-```shell
-$ chocolate-doom -dbconnect 10.0.3.4:10000 -deathmatch -iwad doom.wad
-```
-
-At the time of writing Chocolate Doom does not have a built-in server.
