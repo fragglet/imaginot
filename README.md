@@ -1,4 +1,6 @@
 
+![Imaginot logo](imaginot.svg)
+
 This is an adapter driver for the DOS versions of
 [Sopwith](https://en.wikipedia.org/wiki/Sopwith\_%28video_game%29)
 to make its multiplayer feature work over
