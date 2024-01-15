@@ -8,7 +8,7 @@ to make its multiplayer feature work over
 like most other DOS games. Among other things, this means that multiplayer
 Sopwith can be played over the Internet in [DOSbox](https://www.dosbox.com/).
 
-# Background
+## Background
 
 Almost everyone who has played Sopwith has noticed the "Multiplayer"
 option on the main menu. Anyone curious enough to have tried to get it
@@ -33,7 +33,7 @@ because it showed that only the standard PC hardware interfaces
 are needed; there is no need for any special drivers or emulation of
 the BMB hardware.
 
-# Imaginot
+## Imaginot
 
 Imaginot builds on NY00123's discovery by providing a full adapter
 program that allows Sopwith to be played using a normal networking
