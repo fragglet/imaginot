@@ -28,12 +28,12 @@ imaginot.exe: $(OBJS)
 .asm.o:
 	wasm -q -fo=$@ $<
 
-clean:
+clean: .always
 	del bld\*.o
 	del bld\*.lib
 	del $(EXE)
 
-rel: $(EXE)
+rel: $(EXE) .always
 	!copy dist\*.* rel\
 	vsetargs rel\ipxsetup.exe imaginot sopwith2 -db
 	vsetargs rel\udpsetup.exe imaginot sopwith2 -db
