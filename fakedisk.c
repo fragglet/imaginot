@@ -31,8 +31,17 @@
 
 enum state
 {
-    STATE_INIT,  // Providing the data for init1mul(), init2mul()
-    STATE_INGAME,
+    // Providing the data for init1mul(), init2mul()
+    STATE_INIT,
+
+    // We are waiting for Sopwith to read the data sector again to get
+    // other players' commands. In this state we pretend that players
+    // 0...consoleplayer-1 have all written their commands. If
+    // consoleplayer == 0, this read might not happen.
+    STATE_WAITING_READ,
+
+    // We are waiting for Sopwith to write its next command.
+    STATE_WAITING_WRITE,
 };
 
 enum
@@ -179,7 +188,13 @@ static bool ReadData(void far *data)
         }
         break;
 
-    case STATE_INGAME:
+    case STATE_WAITING_READ:
+        // We signal that it's "your turn".
+        multio.last_player = (consoleplayer + num_players - 1) % num_players;
+        state = STATE_WAITING_WRITE;
+        break;
+
+    case STATE_WAITING_WRITE:
         break;
     }
 
@@ -262,17 +277,29 @@ static bool WriteData(void far *data)
         }
         multio.num_players = num_players;
         multio.last_player = num_players - 1;
-        state = STATE_INGAME;
+        state = STATE_WAITING_READ;
         break;
 
-    case STATE_INGAME:
-        multio.last_player = num_players - 1;
-        for (i = 0; i < MAX_PLAYERS; i++)
+    case STATE_WAITING_READ:
+        // The read step doesn't happen here if consoleplayer == 0, so
+        // we just fall straight through to the write stage.
+
+    case STATE_WAITING_WRITE:
+        // Copy to other players. TODO: Call SwapCommand().
+        for (i = 0; i < num_players; i++)
         {
             multio.key[i] = multio.key[consoleplayer];
         }
+        multio.last_player = num_players - 1;
+        state = STATE_WAITING_READ;
         break;
     }
+
+    // As a slightly underhanded move, we also do a copy back into the
+    // buffer that we read from. This allows Sopwith to skip an extra
+    // read call during multput() - ie. updated() will return straight
+    // away and not perform any delay.
+    _fmemcpy(data, &multio, sizeof(struct sop_multio));
 
     return true;
 }
