@@ -15,15 +15,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <process.h>
 
-#include "fakedisk.h"
 #include "lib/flag.h"
 #include "lib/log.h"
 
+#include "doomnet.h"
+#include "fakedisk.h"
+#include "protocol.h"
+
 static long doomcom_addr = 0;
 
-void SetDoomcomAddr(long value)
+static void SetDoomcomAddr(long value)
 {
     doomcom_addr = value;
 }
@@ -31,6 +36,7 @@ void SetDoomcomAddr(long value)
 int main(int argc, char *argv[])
 {
     char **args;
+    doomcom_t far *doomcom;
 
     SetHelpText("Sopwith multiplayer adapter", "ipxsetup %s sopwith2");
     APIPointerFlag("-net", SetDoomcomAddr);
@@ -45,6 +51,9 @@ int main(int argc, char *argv[])
         ErrorPrintUsage("You should run this program via a driver, eg. "
                         "IPXSETUP.");
     }
+
+    doomcom = NetGetHandle(doomcom_addr);
+    InitProtocol(doomcom);
 
     HookDiskInterrupts();
     atexit(RestoreDiskInterrupts);
