@@ -54,3 +54,18 @@ stack. To accomplish this, it has to do some low-level hackery to
   knowledge of their format (thanks to the Sopwith source code having
   been open sourced many years back!)
 
+* Sopwith's networking is supposed to work by different machines
+  reading and writing to a shared file.
+  This is inherently a [stop and wait](https://en.wikipedia.org/wiki/Stop-and-wait_ARQ)
+  protocol, which does not work well over long-distance networks.
+  Instead, *Imaginot* works by sending a pipeline of the input commands
+  between the different peers in the game. This approach helps to make
+  the game more playable over the Internet.
+
+* *Imaginot* reuses the [driver interface from Doom](https://doomwiki.org/wiki/Doom_networking_component).
+  This allows Sopwith to be played over a number of different networking
+  protocols and technologies: Serial/Modem, IPX, Parallel Port, Serial
+  Infrared and UDP, to name a few found in the
+  [Vanilla Utilities](https://github.com/fragglet/vanilla-utilities)
+  collection. Included are drivers for IPX and UDP.
+
