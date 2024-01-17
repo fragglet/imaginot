@@ -20,6 +20,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "lib/ints.h"
+
 #include "doomnet.h"
 #include "fakedisk.h"
 #include "protocol.h"
@@ -331,67 +333,85 @@ static bool WriteSector(void far *data, uint32_t sector, uint16_t cnt)
 }
 
 // Int 13h: BIOS interrupt call
-static void interrupt far Int13(union INTPACK ip)
+static bool RealInt13(union INTPACK far *ip)
 {
     ++int13_count;
 
     // ah=0 -> DISK - RESET DISK SYSTEM
     // al=1 -> Drive B:
-    if (ip.h.ah == 0 && ip.h.dl == 1)
+    if (ip->h.ah == 0 && ip->h.dl == 1)
     {
-        ip.w.flags &= ~INTR_CF;
-        ip.h.ah = 0;  // success
-        return;
+        ip->w.flags &= ~INTR_CF;
+        ip->h.ah = 0;  // success
+        return true;
     }
 
     // ah=2 -> DISK - READ SECTOR(S) INTO MEMORY
     // al=1 -> Drive B:
-    if (ip.h.ah == 2 && ip.h.dl == 1)
+    if (ip->h.ah == 2 && ip->h.dl == 1)
     {
         // BIOS sector numbers are indexed from 1.
-        uint32_t sector = ((uint32_t) ip.x.cx - 1UL)
-            | (((uint32_t) ip.h.dh) << 16);
+        uint32_t sector = ((uint32_t) ip->x.cx - 1UL)
+            | (((uint32_t) ip->h.dh) << 16);
         bool success = ReadSector(
-            MK_FP(ip.x.es, ip.x.bx), sector, ip.h.al);
+            MK_FP(ip->x.es, ip->x.bx), sector, ip->h.al);
         if (success)
         {
-            ip.w.flags &= ~INTR_CF;
-            ip.h.ah = 0;  // success
-            ip.h.al = 1;  // 1 sector transferred
+            ip->w.flags &= ~INTR_CF;
+            ip->h.ah = 0;  // success
+            ip->h.al = 1;  // 1 sector transferred
         }
         else
         {
-            ip.w.flags |= INTR_CF;
-            ip.h.ah = 0x20;
-            ip.h.al = 0;
+            ip->w.flags |= INTR_CF;
+            ip->h.ah = 0x20;
+            ip->h.al = 0;
         }
-        return;
+        return true;
     }
 
     // ah=3 -> DISK - WRITE DISK SECTOR(S)
     // al=1 -> Drive B:
-    if (ip.h.ah == 3 && ip.h.dl == 1)
+    if (ip->h.ah == 3 && ip->h.dl == 1)
     {
-        uint32_t sector = ((uint32_t) ip.x.cx - 1UL)
-            | (((uint32_t) ip.h.dh) << 16);
+        uint32_t sector = ((uint32_t) ip->x.cx - 1UL)
+            | (((uint32_t) ip->h.dh) << 16);
         bool success = WriteSector(
-            MK_FP(ip.x.es, ip.x.bx), sector, ip.h.al);
+            MK_FP(ip->x.es, ip->x.bx), sector, ip->h.al);
         if (success)
         {
-            ip.w.flags &= ~INTR_CF;
-            ip.h.ah = 0;  // success
-            ip.h.al = 1;  // 1 sector written
+            ip->w.flags &= ~INTR_CF;
+            ip->h.ah = 0;  // success
+            ip->h.al = 1;  // 1 sector written
         }
         else
         {
-            ip.w.flags |= INTR_CF;
-            ip.h.ah = 0x20;
-            ip.h.al = 0;
+            ip->w.flags |= INTR_CF;
+            ip->h.ah = 0x20;
+            ip->h.al = 0;
         }
-        return;
+        return true;
     }
 
-    _chain_intr(old_int13);
+    // Chain to old handler.
+    return false;
+}
+
+// Int 13h: BIOS interrupt call
+static void interrupt far Int13(union INTPACK ip)
+{
+    static union INTPACK far *ip_copy;
+    static bool chain;
+    ip_copy = &ip;
+
+    SWITCH_ISR_STACK;
+    chain = !RealInt13(ip_copy);
+    RESTORE_ISR_STACK;
+
+    if (chain)
+    {
+        _chain_intr(old_int13);
+    }
 }
 
 // DOS interrupts 25h and 26h leave the FLAGS register on the stack and

@@ -12,8 +12,8 @@ EXE = imaginot.exe
 
 all: $(EXE)
 
-bld\common.lib: bld\flag.o bld\log.o bld\dos.o
-	wlib -q -n $@ +bld\flag.o +bld\log.o +bld\dos.o
+bld\common.lib: bld\flag.o bld\log.o bld\dos.o bld\ints.o
+	wlib -q -n $@ +bld\flag.o +bld\log.o +bld\dos.o +bld\ints.o
 imaginot.exe: $(OBJS)
 	wcl -q -fe=$@ $(OBJS)
 
