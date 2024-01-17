@@ -256,16 +256,8 @@ static void ReceivePacket(struct node *n)
 
 void ReceivePackets(void)
 {
-    for (;;)
+    while (NetGetPacket(doomcom))
     {
-        doomcom->command = CMD_GET;
-        NetGetPacket(doomcom);
-
-        if (doomcom->remotenode < 0)
-        {
-            break;
-        }
-
         assert(doomcom->remotenode < num_nodes);
 
         ReceivePacket(&nodes[doomcom->remotenode]);

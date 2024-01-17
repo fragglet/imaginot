@@ -335,6 +335,7 @@ static bool WriteSector(void far *data, uint32_t sector, uint16_t cnt)
 // Int 13h: BIOS interrupt call
 static bool RealInt13(union INTPACK far *ip)
 {
+    ReceivePackets();
     ++int13_count;
 
     // ah=0 -> DISK - RESET DISK SYSTEM
