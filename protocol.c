@@ -17,6 +17,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <assert.h>
+#include <time.h>
 
 #include "crc32.h"
 #include "doomnet.h"
@@ -48,6 +49,7 @@ struct node {
     struct window send_window;
     struct window recv_window;
     int player;
+    time_t last_send_time;
 };
 
 static doomcom_t far *doomcom;
@@ -116,8 +118,8 @@ static void SendPacket(struct node *dest)
                         - (MAX_DELAY - pkt->num_cmds) * sizeof(uint16_t);
     pkt->checksum = Checksum();
 
-    // TODO: Checksum
     NetSendPacket(doomcom);
+    dest->last_send_time = time(NULL);
 }
 
 // Returns true if there is at least one tic working in the receive
@@ -253,8 +255,24 @@ static void ReceivePacket(struct node *n)
     n->player = pkt->player;
 }
 
+static void CheckResends(void)
+{
+    time_t now = time(NULL);
+    int i;
+
+    for (i = 1; i < num_nodes; i++)
+    {
+        if (now - nodes[i].last_send_time > 0)
+        {
+            SendPacket(&nodes[i]);
+        }
+    }
+}
+
 void ReceivePackets(void)
 {
+    CheckResends();
+
     while (NetGetPacket(doomcom))
     {
         assert(doomcom->remotenode < num_nodes);
