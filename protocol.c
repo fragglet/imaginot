@@ -222,8 +222,7 @@ static void ReceivePacket(struct node *n)
     if (pkt->ack > n->send_window.start
      && pkt->ack <= n->send_window.start + n->send_window.len)
     {
-        int cnt = n->send_window.start + n->send_window.len
-                - pkt->ack;
+        int cnt = pkt->ack - n->send_window.start;
         memmove(n->send_window.cmds, n->send_window.cmds + cnt,
                 (n->send_window.len - cnt) * sizeof(uint16_t));
         n->send_window.start += cnt;
