@@ -95,14 +95,6 @@ static uint32_t Checksum(void)
 
 static void SendPacket(struct node *dest)
 {
-    // Loopback send:
-    if (dest == &nodes[0])
-    {
-        memcpy(&dest->recv_window, &dest->send_window,
-               sizeof(struct window));
-        return;
-    }
-
     pkt->start = dest->send_window.start;
     pkt->ack = dest->recv_window.start + dest->recv_window.len;
     pkt->player = nodes[0].player;
@@ -137,6 +129,7 @@ static bool NewTicReady(void)
 
 bool SwapCommand(uint16_t cmd, uint16_t cmds[MAX_PLAYERS])
 {
+    struct window *send_window;
     int i, new_len;
 
     // TODO: Temporarily simulating other players by copying consoleplayer's
@@ -164,12 +157,16 @@ bool SwapCommand(uint16_t cmd, uint16_t cmds[MAX_PLAYERS])
 
     for (i = 0; i < num_nodes; i++)
     {
-        new_len = maketic - nodes[i].send_window.start;
-        if (new_len > nodes[i].send_window.len)
+        send_window = i == 0 ? &nodes[0].recv_window : &nodes[i].send_window;
+        new_len = maketic - send_window->start;
+        if (new_len > send_window->len)
         {
-            nodes[i].send_window.cmds[new_len] = cmd;
-            ++nodes[i].send_window.len;
-            SendPacket(&nodes[i]);
+            send_window->cmds[new_len - 1] = cmd;
+            send_window->len = new_len;
+            if (i != 0)
+            {
+                SendPacket(&nodes[i]);
+            }
         }
         // TODO: We should also resend if we have not sent a packet recently.
     }
