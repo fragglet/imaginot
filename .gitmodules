@@ -1,0 +1,3 @@
+[submodule "build/dos-compilers"]
+	path = build/dos-compilers
+	url = https://github.com/fragglet/dos-compilers.git
