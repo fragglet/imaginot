@@ -71,22 +71,20 @@ void InitProtocol(doomcom_t far *dc)
         && doomcom->consoleplayer >= 0
         && doomcom->consoleplayer < doomcom->numplayers);
 
-    num_nodes = doomcom->numnodes;
-    nodes[0].player = doomcom->consoleplayer;
-    consoleplayer = doomcom->consoleplayer;
-    num_players = doomcom->numplayers;
+    maketic = DELAY;
 
     for (i = 0; i < MAX_PLAYERS; i++)
     {
         nodes[i].player = -1;
         nodes[i].send_window.start = 0;
-
-        // We start the game with a number of tics already in
-        // the pipeline.
-        nodes[i].recv_window.len = DELAY - 1;
+        nodes[i].send_window.len = DELAY - 1;
+        nodes[i].recv_window.len = 0;
     }
 
-    maketic = DELAY - 1;
+    num_nodes = doomcom->numnodes;
+    nodes[0].player = doomcom->consoleplayer;
+    consoleplayer = doomcom->consoleplayer;
+    num_players = doomcom->numplayers;
 }
 
 static uint32_t Checksum(void)
