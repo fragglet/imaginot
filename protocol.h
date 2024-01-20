@@ -29,3 +29,4 @@ bool SwapCommand(uint16_t cmd, uint16_t cmds[MAX_PLAYERS]);
 void ReceivePackets(void);
 
 extern int consoleplayer, num_players;
+extern int fake_players;

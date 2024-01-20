@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
 
     SetHelpText("Sopwith multiplayer adapter", "ipxsetup %s sopwith2");
     APIPointerFlag("-net", SetDoomcomAddr);
+    BoolFlag("-fakeplayers", &fake_players, "Simulate four player game");
 
     args = ParseCommandLine(argc, argv);
     if (args == NULL)

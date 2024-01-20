@@ -57,6 +57,7 @@ static struct packet far *pkt;  // points into doomcom->data
 static struct node nodes[MAX_PLAYERS];
 static uint32_t maketic, gametic;
 static int num_nodes = 2;
+int fake_players = 0;
 int consoleplayer, num_players;
 
 void InitProtocol(doomcom_t far *dc)
@@ -84,7 +85,7 @@ void InitProtocol(doomcom_t far *dc)
     num_nodes = doomcom->numnodes;
     nodes[0].player = doomcom->consoleplayer;
     consoleplayer = doomcom->consoleplayer;
-    num_players = doomcom->numplayers;
+    num_players = fake_players ? MAX_PLAYERS : doomcom->numplayers;
 }
 
 static uint32_t Checksum(void)
@@ -160,6 +161,11 @@ bool SwapCommand(uint16_t cmd, uint16_t cmds[MAX_PLAYERS])
 
     // We have received the next command from every other node, so we
     // are now ready for the game to run another tic.
+
+    for (i = 0; i < MAX_PLAYERS; i++)
+    {
+        cmds[i] = 0;
+    }
 
     for (i = 0; i < num_nodes; i++)
     {
