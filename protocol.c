@@ -132,24 +132,6 @@ bool SwapCommand(uint16_t cmd, uint16_t cmds[MAX_PLAYERS])
     struct window *send_window;
     int i, new_len;
 
-    // TODO: Temporarily simulating other players by copying consoleplayer's
-    // commands.
-    {
-        static int cnt = 0;
-        cnt++;
-        if ((cnt % 32) < 3)
-        {
-            // Simulating network delay; other players' commands not received
-            // yet.
-            return false;
-        }
-        for (i = 0; i < MAX_PLAYERS; i++)
-        {
-            cmds[i] = cmd;
-        }
-        return true;
-    }
-
     if (maketic - gametic >= MAX_DELAY)
     {
         return false;
