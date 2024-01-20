@@ -168,12 +168,12 @@ bool SwapCommand(uint16_t cmd, uint16_t cmds[MAX_PLAYERS])
                 SendPacket(&nodes[i]);
             }
         }
-        // TODO: We should also resend if we have not sent a packet recently.
     }
 
-    if (!NewTicReady())
+    while (!NewTicReady())
     {
-        return false;
+        ReceivePackets();
+        // TODO: We should eventually time out.
     }
 
     // We have received the next command from every other node, so we
