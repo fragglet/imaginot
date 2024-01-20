@@ -22,7 +22,7 @@ jobs:
       run: |
         if git describe --exact-match --tags >/dev/null; then
           VERSION=$(git describe --exact-match --tags)
-          VERSION=${VERSION/#v/}
+          VERSION=${VERSION/#imaginot-/}
         else
           VERSION=$(git rev-parse --short HEAD)
         fi
