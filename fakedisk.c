@@ -28,6 +28,10 @@
 
 #pragma pack(push, 1)
 
+// We use a hard-coded random seed for the game; it doesn't really
+// matter since it makes little difference to the game.
+#define EXPL_RANDOM_SEED  0x84
+
 // Sopwith only allows games 0...7
 #define NUM_GAMES 8
 
@@ -180,12 +184,27 @@ static bool ReadData(void far *data)
         // To do this, we pretend that a number of players have already
         // registered themselves so that it will get the right number.
         multio.max_players = num_players;
-        multio.num_players = consoleplayer;
         for (i = 0; i < num_players; i++)
         {
             multio.state[i] =
                 i < consoleplayer ? PLAYER_FLYING : PLAYER_WAITING;
         }
+        // This is slightly counterintuitive, because we'd expect to set
+        // .num_players to consoleplayer. But the num_players field isn't
+        // actually used by Sopwith for much other than identifying which
+        // is the "first player" that prompts for the number of players
+        // and initializes the shared data file. In our case we already
+        // know how many players there are and there is no real data file
+        // to be initialized. So we just set to 1 so that the game uses
+        // the values we have already set.
+        multio.num_players = 1;
+
+        // To keep the game synchronized between peers, it is essential
+        // that they all use the same random seed. This is the other
+        // reason we set .num_players = 1 above; if num_players=0, the
+        // game will generate a new random seed that doesn't match the
+        // other peers.
+        multio.explseed = EXPL_RANDOM_SEED;
         break;
 
     case STATE_WAITING_READ:
