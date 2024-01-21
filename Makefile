@@ -35,7 +35,7 @@ clean: .always
 
 rel: $(EXE) .always
 	!copy dist\*.* rel\
+	!copy imaginot.exe rel\
 	vsetargs rel\ipxsetup.exe imaginot
 	vsetargs rel\udpsetup.exe imaginot
 	vsetargs rel\imaginot.exe sopwith2 -db
-	!copy imaginot.exe rel\
