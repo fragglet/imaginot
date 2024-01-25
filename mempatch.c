@@ -1,8 +1,11 @@
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <i86.h>
 
 #include "mempatch.h"
+#include "doomnet.h"
+#include "protocol.h"
 
 #define arrlen(x) (sizeof(x) / sizeof(*(x)))
 
@@ -70,7 +73,12 @@ void ApplyPatches(uint16_t segment)
         return;
     }
 
-    ApplyPatch(buf, 0xffff, move_oxen_old, move_oxen_new,
-               arrlen(move_oxen_old));
+    // We only need to move the oxen if there are more than two players;
+    // otherwise there is nothing they are getting in the way of.
+    if (num_players > 2)
+    {
+        ApplyPatch(buf, 0xffff, move_oxen_old, move_oxen_new,
+                   arrlen(move_oxen_old));
+    }
 }
 
