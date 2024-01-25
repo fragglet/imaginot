@@ -6,6 +6,8 @@
 
 #define arrlen(x) (sizeof(x) / sizeof(*(x)))
 
+int no_mem_patch = 0;
+
 // This patch moves the oxen out of the warzone. This is important because
 // the positions of the oxen are right next to the player 3 and 4 start
 // positions, which makes taking off very difficult.
@@ -62,6 +64,11 @@ static void ApplyPatch(uint8_t far *buf, size_t buf_len, uint8_t *old_data,
 void ApplyPatches(uint16_t segment)
 {
     uint8_t far *buf = MK_FP(segment, 0);
+
+    if (no_mem_patch)
+    {
+        return;
+    }
 
     ApplyPatch(buf, 0xffff, move_oxen_old, move_oxen_new,
                arrlen(move_oxen_old));

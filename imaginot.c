@@ -24,6 +24,7 @@
 
 #include "doomnet.h"
 #include "fakedisk.h"
+#include "mempatch.h"
 #include "protocol.h"
 
 static long doomcom_addr = 0;
@@ -41,6 +42,8 @@ int main(int argc, char *argv[])
     SetHelpText("Sopwith multiplayer adapter", "ipxsetup %s sopwith2");
     APIPointerFlag("-net", SetDoomcomAddr);
     BoolFlag("-fakeplayers", &fake_players, "Simulate four player game");
+    BoolFlag("-nomempatch", &no_mem_patch,
+             "Don't patch Sopwith memory to fix bugs");
 
     args = ParseCommandLine(argc, argv);
     if (args == NULL)
