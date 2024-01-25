@@ -9,6 +9,8 @@ over the
 like most other DOS games. This allows multiplayer
 Sopwith to be played over the Internet in [DOSbox](https://www.dosbox.com/).
 
+A demo video [can be found here](https://www.youtube.com/watch?v=qgHfTwQQ8u8).
+
 ## Background
 
 Almost everyone who has played Sopwith has noticed the "Multiplayer"
