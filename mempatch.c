@@ -28,6 +28,32 @@ static uint8_t move_oxen_new[] = {
     0x38, 0x04, 0xb2, 0x07, 0x2a, 0x00, 0x2a, 0x00,
 };
 
+
+// This patch increases the time before a plane repawns, from 10 tics to 16
+// tics. The reason is that with the default of 10 tics, when a plane crashes
+// in its start position, the debris can hit the respawned plane and cause it
+// to crash again. This is particularly unfair in multiplayer where you can
+// be attacked by another player while sitting on the runway.
+
+// > 0000:222c 8b 76 fe    MOV SI,word ptr [BP + local_4]
+// > 0000:222f 89 44 06    MOV word ptr [SI + 0x6],AX
+// > 0000:2232 b8 0a 00    MOV AX,0xa
+//                \_ 10 = MAXCRCOUNT, we change to 16
+// > 0000:2235 8b 76 fe    MOV SI,word ptr [BP + local_4]
+// > 0000:2238 89 44 1a    MOV word ptr [SI + 0x1a],AX
+// > 0000:223b 8b e5       MOV SP,BP
+// > 0000:223d 5d          POP BP
+// > 0000:223e c3          RET
+
+static uint8_t respawn_time_old[] = {
+    0x8b, 0x76, 0xfe, 0x89, 0x44, 0x06, 0xb8, 0x0a, 0x00, 0x8b,
+    0x76, 0xfe, 0x89, 0x44, 0x1a, 0x8b, 0xe5, //^^
+};
+static uint8_t respawn_time_new[] = {
+    0x8b, 0x76, 0xfe, 0x89, 0x44, 0x06, 0xb8, 0x10, 0x00, 0x8b,
+    0x76, 0xfe, 0x89, 0x44, 0x1a, 0x8b, 0xe5, //^^
+};
+
 static void ApplyPatch(uint8_t far *buf, size_t buf_len, uint8_t *old_data,
                        uint8_t *new_data, size_t sz)
 {
@@ -80,5 +106,8 @@ void ApplyPatches(uint16_t segment)
         ApplyPatch(buf, 0xffff, move_oxen_old, move_oxen_new,
                    arrlen(move_oxen_old));
     }
+
+    ApplyPatch(buf, 0xffff, respawn_time_old, respawn_time_new,
+               arrlen(respawn_time_old));
 }
 
