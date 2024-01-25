@@ -7,7 +7,7 @@ CFLAGS = -I. -q -onx -w3
 LDFLAGS = -q
 
 OBJS = bld\fakedisk.o bld\imaginot.o bld\doomnet.o bld\protocol.o &
-       bld\crc32.o bld\common.lib
+       bld\crc32.o mempatch.o bld\common.lib
 EXE = imaginot.exe
 
 all: $(EXE)

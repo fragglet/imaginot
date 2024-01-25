@@ -24,6 +24,7 @@
 
 #include "doomnet.h"
 #include "fakedisk.h"
+#include "mempatch.h"
 #include "protocol.h"
 
 #pragma pack(push, 1)
@@ -460,6 +461,17 @@ static void interrupt far Int25(union INTPACK ip)
 {
     ++int25_count;
     _dos_setvect(0x13, Int13);
+
+    // The first time this interrupt is invoked, we call ApplyPatches()
+    // to make some small changes to Sopwith's memory segment.
+    {
+        static bool applied_patches = false;
+        if (!applied_patches)
+        {
+            ApplyPatches(ip.x.cs);
+            applied_patches = true;
+        }
+    }
 
     // al=1 -> Drive B:
     if (ip.h.al == 1)

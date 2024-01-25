@@ -178,3 +178,30 @@ Sopwith 1 version:
         *(undefined2 *)(*(int *)0x868 + 0x10 + *(int *)0x9867 * 2) = 0;
         *(undefined2 *)(*(int *)0x868 + 8 + *(int *)0x9867 * 2) = 0;        multbuff->mu_key[player] = 0;
         bVar1 = true;
+
+=== Ox patching
+
+From swinit.c:
+
+    initoxen()
+    {
+    register OBJECTS *ob;
+    register int      i;
+    static   iox[] = { 1376, 1608 };
+    static   ioy[] = { 80,   91   };
+
+Translates to:
+
+    0x60, 0x05, 0x48, 0x06, 0x50, 0x00, 0x5b, 0x00,
+
+In SOPWITH2.EXE:
+
+0000a620  ff fe ff ff ff fe ff ff  ff fe ff 60 05 48 06 50  |...........`.H.P|
+0000a630  00 5b 00 01 00 02 00 02  00 03 00 03 00 02 00 02  |.[..............|
+
+X:
+  1376 -> 1080 (flat ground left of cyan base)      38 04
+  1608 -> 1970 (flat ground right of magenta base)  b2 07
+Y:
+  80 -> 42 (ground @26 + 16)                        2a 00
+  91 -> 42 (ground @26 + 16)                        2a 00
