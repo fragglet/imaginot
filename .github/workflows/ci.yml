@@ -1,6 +1,11 @@
 name: Continuous Integration
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:  # Monthly build:
+    - cron: "30 2 1 * *"
 
 jobs:
   watcom_build:
